@@ -10,6 +10,10 @@
 ![image](https://github.com/user-attachments/assets/c771b367-d7a9-40f4-8bd5-bb30047eb75d)
 ![image](https://github.com/user-attachments/assets/6a6a413c-83a3-4fe2-8a04-5e9fdf69d6b1)
 
+
+Для работы требуется easy_http модуль от Next21Team https://github.com/Next21Team/AmxxEasyHttp 
+
+
 Конфиг требует настроек (зарегистрироваться на одном или нескольких веб сайтах указанных в конфиге, и указать API ключ
 так же изменить количество API доступных - не нужные убрать)
 
