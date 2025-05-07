@@ -11,7 +11,7 @@
 #pragma dynamic 262144
 
 new const PLUGIN_NAME[] = "UNREAL CHAT BOT";
-new const PLUGIN_VERSION[] = "1.00";
+new const PLUGIN_VERSION[] = "1.01";
 new const PLUGIN_AUTHOR[] = "Karaulov";
 new const PLUGIN_SITE[] = "https://dev-cs.ru";
 
@@ -51,6 +51,7 @@ new g_iPrefixUsage = 1;
 new bool:g_bCheckForHltv = true;
 
 new bool:g_bCheckForBots = true;
+new bool:g_bUserBot[MAX_PLAYERS +1] = {false,...};
 
 
 public plugin_init() {
@@ -102,17 +103,29 @@ public client_putinserver(id) {
 	remove_task(id);
 	
 	if (g_bCheckForBots && is_user_bot(id))
-		return;
-		
+	{
+		if (!g_bCheckForBots)
+			g_bUserBot[id] = true;
+		else 
+			return;
+	}
+	
 	if (g_bCheckForHltv && is_user_hltv(id))
-		return;
+	{
+		if (!g_bCheckForHltv)
+			g_bUserBot[id] = true;
+		else 
+			return;
+	}
+	
+	new Float:joinDelay = random_float(3.0,5.0);
 	
 	set_task(3.0,"send_putin_server",id);
 	if (get_gametime() - g_fLastTimeUsed[id] < g_fDelayTime) {
 		return;
 	}
 	
-	g_fLastTimeUsed[id] = get_gametime() - 3.1;
+	g_fLastTimeUsed[id] = get_gametime() - (joinDelay + 0.2);
 }
 
 public print_unrealchat_cfg()
@@ -181,6 +194,9 @@ public print_unrealchat_cfg()
 }
 
 public send_putin_server(id){
+	if (g_sJoinMessage[0] == EOS)
+		return;
+
 	if (g_playerHistory[id] != EzInvalid_JSON) {
 		ezjson_array_clear(g_playerHistory[id]);
 	} else {
@@ -535,10 +551,8 @@ public handle_error()
 }
 
 public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
-	static raw_response[4096];
+	static raw_response[200];
 	static message[SYS_PROMT_MAX];
-	ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
-	//dump_response_to_file(id, raw_response);
 	new bool:connect = is_user_connected(id) > 0;
 
 	if (error != _: EZH_OK) {
@@ -579,12 +593,7 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 						ezjson_object_get_string(json_message, "content", message, charsmax(message));
 						new count = ezjson_array_get_count(g_playerHistory[id]);
 						preparing_message(message, charsmax(message));
-						SendSplitMessage(count > 1 && connect ? id : 0, g_sChatBotPrefixFixed, message);
-						
-						/*if (connect){					
-							get_user_name(id,raw_response,64);
-							log_amx("Player %s got response %192s from chatbot.", raw_response, message);
-						}*/
+						SendSplitMessage(count > 2 && connect ? id : 0, g_sChatBotPrefixFixed, message);
 						
 						update_threads(false,true);
 				
@@ -593,7 +602,6 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 					}
 					else 
 					{
-						new raw_response[2048];
 						ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
 						log_amx("[api_result] json error, no messages: %s", raw_response);
 						handle_error();
@@ -602,7 +610,6 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 				}
 				else 
 				{
-					new raw_response[2048];
 					ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
 					log_amx("[api_result] json error, empty choices: %s", raw_response);
 					handle_error();
@@ -610,7 +617,6 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 			}
 			else 
 			{
-				new raw_response[2048];
 				ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
 				log_amx("[api_result] json error, invalid choices: %s", raw_response);
 				handle_error();
@@ -624,12 +630,7 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 				ezjson_object_get_string(result, "response", message, charsmax(message));
 				new count = ezjson_array_get_count(g_playerHistory[id]);
 				preparing_message(message, charsmax(message));
-				SendSplitMessage(count > 1 && connect ? id : 0, g_sChatBotPrefixFixed, message);
-				
-				/*if (connect){					
-					get_user_name(id,raw_response,64);
-					log_amx("Player %s got response %192s from chatbot.", raw_response, message);
-				}*/
+				SendSplitMessage(count > 2 && connect ? id : 0, g_sChatBotPrefixFixed, message);
 				
 				update_threads(false,true);
 				
@@ -638,7 +639,6 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 			} 
 			else 
 			{
-				new raw_response[2048];
 				ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
 				log_amx("[api_result] json error, no choices/result: %s", raw_response);
 				handle_error();
@@ -646,7 +646,6 @@ public handle_openrouter_response(EzHttpRequest: request_id, error, id) {
 		}
 		ezjson_free(response);
 	} else {
-		new raw_response[2048];
 		ezhttp_get_data(request_id, raw_response, charsmax(raw_response));
 		log_amx("[api_result] json error, raw response: %s", raw_response);
 		
@@ -818,19 +817,40 @@ stock SendSplitMessage(id, const prefix[], const message[]) {
 }
 
 stock write_client_message(const index, const sender, const message[], any: ...) {
-	static buffer[256];
+	if (g_bUserBot[index])
+		return;
 
-	message_begin(MSG_ONE, g_iSayText, _, index);
-	write_byte(sender);
+
+	static buffer[256];
 	new numArguments = numargs();
 	if (numArguments == 2) {
 		formatex(buffer, charsmax(buffer), "%192s", message);
 	} else {
 		vformat(buffer, charsmax(buffer), message, 3);
 	}
+	
 	buffer[191] = EOS;
-	write_string(buffer);
-	message_end();
+	
+	if (!index)
+	{
+		for(new i = 1; i <= MAX_PLAYERS;i++)
+		{
+			if (!g_bUserBot[i] && is_user_connected(i))
+			{
+				message_begin(MSG_ONE, g_iSayText, _, i);
+				write_byte(sender);
+				write_string(buffer);
+				message_end();
+			}
+		}
+	}
+	else 
+	{
+		message_begin(MSG_ONE, g_iSayText, _, index);
+		write_byte(sender);
+		write_string(buffer);
+		message_end();
+	}
 }
 
 stock trim_to_dir(path[]) {
