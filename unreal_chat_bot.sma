@@ -100,6 +100,13 @@ public plugin_end() {
 
 public client_putinserver(id) {
 	remove_task(id);
+	
+	if (g_bCheckForBots && is_user_bot(id))
+		return;
+		
+	if (g_bCheckForHltv && is_user_hltv(id))
+		return;
+	
 	set_task(3.0,"send_putin_server",id);
 	if (get_gametime() - g_fLastTimeUsed[id] < g_fDelayTime) {
 		return;
