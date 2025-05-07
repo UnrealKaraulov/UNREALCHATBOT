@@ -1,2 +1,18 @@
 # UNREALCHATBOT
-Chat bot plugin for AMXMODX, alpha version
+Плагин - чат бот для AMXMODX, версия alpha тест.
+
+Конфиг с разнообразными настройками и поддержкой множественных API, для стабильной работы длительное время.
+
+Приветсвие игроков на сервере и общение с чат ботом.
+
+![image](https://github.com/user-attachments/assets/66728807-95f0-4e79-a374-ad97b72d0a33)
+![image](https://github.com/user-attachments/assets/2c52a66e-5eed-4924-a128-3ed70f4d324a)
+![image](https://github.com/user-attachments/assets/c771b367-d7a9-40f4-8bd5-bb30047eb75d)
+![image](https://github.com/user-attachments/assets/6a6a413c-83a3-4fe2-8a04-5e9fdf69d6b1)
+
+Конфиг требует настроек (зарегистрироваться на одном или нескольких веб сайтах указанных в конфиге, и указать API ключ
+так же изменить количество API доступных - не нужные убрать)
+
+Все API из конфига позволяют использовать бота бесплатно с некотоырми ограничениями.
+
+В случае ошибки API автоматически переключается на следующий.
