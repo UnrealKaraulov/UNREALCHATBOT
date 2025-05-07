@@ -11,7 +11,7 @@
 #pragma dynamic 262144
 
 new const PLUGIN_NAME[] = "UNREAL CHAT BOT";
-new const PLUGIN_VERSION[] = "1.01";
+new const PLUGIN_VERSION[] = "1.02";
 new const PLUGIN_AUTHOR[] = "Karaulov";
 new const PLUGIN_SITE[] = "https://dev-cs.ru";
 
@@ -47,6 +47,7 @@ new Float:g_fLastTimeUsed[MAX_PLAYERS + 1] = {-999.0,...};
 new Float:g_fDelayTime = 2.5;
 new g_iSayText = 0;
 new g_iPrefixUsage = 1;
+new Float:g_fLastApiUpdateTime = 0.0;
 
 new bool:g_bCheckForHltv = true;
 
@@ -528,6 +529,13 @@ public handle_error()
 	
 	if (g_bSwithAPIonError)
 	{
+		if (floatabs(get_gametime() - g_fLastApiUpdateTime) < 10.0)
+		{
+			return;
+		}
+		g_fLastApiUpdateTime = get_gametime();
+		
+	
 		for (new id = 0; id <= MAX_PLAYERS; id++) {
 			remove_task(id);
 			if (is_user_connected(id))
