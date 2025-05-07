@@ -11,7 +11,7 @@
 #pragma dynamic 262144
 
 new const PLUGIN_NAME[] = "UNREAL CHAT BOT";
-new const PLUGIN_VERSION[] = "1.02";
+new const PLUGIN_VERSION[] = "1.03";
 new const PLUGIN_AUTHOR[] = "Karaulov";
 new const PLUGIN_SITE[] = "https://dev-cs.ru";
 
@@ -224,6 +224,9 @@ public send_putin_server(id){
 	ezjson_object_set_string(msg, "role", "system");
 	ezjson_object_set_string(msg, "content", g_sTempBigBuffer);
 	
+	ezjson_array_append_value(g_playerHistory[id], msg);
+	ezjson_free(msg);
+	
 	copy(g_sTempBigBuffer,charsmax(g_sTempBigBuffer), g_sJoinMessage);
 	replace_all(g_sTempBigBuffer,charsmax(g_sTempBigBuffer),"[userid]",userid);
 	replace_all(g_sTempBigBuffer,charsmax(g_sTempBigBuffer),"[username]",username);
@@ -231,8 +234,6 @@ public send_putin_server(id){
 	replace_all(g_sTempBigBuffer,charsmax(g_sTempBigBuffer),"[steamid]",userauth);
 	preparing_message(g_sTempBigBuffer, charsmax(g_sTempBigBuffer));
 
-	ezjson_array_append_value(g_playerHistory[id], msg);
-	ezjson_free(msg);
 
 	if (get_gametime() - g_fLastTimeUsed[id] < g_fDelayTime) {
 		return;
@@ -406,7 +407,7 @@ public trim_history(id) {
 	new count = ezjson_array_get_count(g_playerHistory[id]);
 
 	while (count > g_iMaxHistory) {
-		ezjson_array_remove(g_playerHistory[id], 0);
+		ezjson_array_remove(g_playerHistory[id], 1);
 		count--;
 	}
 }
