@@ -19,13 +19,13 @@ new const PLUGIN_SITE[] = "https://dev-cs.ru";
 #define SYS_PROMT_MAX 4077
 #define MAX_THREADS 40
 
-new g_sApiUrl[API_KEY_MAX] = "https://api.mistral.ai/v1/chat/completions"
-new g_sApiKey[API_KEY_MAX] = "Bearer NpvcgZk0pFTLaTXXXXXXXXXXXXXX";
-new g_sChatBotModel[API_KEY_MAX] = "mistral-large-latest";
+new g_sApiUrl[API_KEY_MAX] = "https://models.github.ai/inference/chat/completions"
+new g_sApiKey[API_KEY_MAX] = "Bearer github_pat_XXXXXXXXXXXXXXXXXXXXX_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+new g_sChatBotModel[API_KEY_MAX] = "deepseek/DeepSeek-V3-0324";
 new g_sChatBotPrefix[API_KEY_MAX] = "^4[GPT]: ";
 new g_sChatBotPrefixFixed[API_KEY_MAX];
-new g_sJoinMessage[API_KEY_MAX] = "Привет, я ```[username]```! Приветствуй меня на сервере!";
-new g_sDelayMessage[API_KEY_MAX] = "Подожди немного, я не занят!";
+new g_sJoinMessage[API_KEY_MAX] = "Hello, my nickname is ```[username]```!";
+new g_sDelayMessage[API_KEY_MAX] = "Please wait!";
 
 new bool:g_bSwithAPIonError = false;
 new g_iApiCount = 1;
@@ -35,7 +35,7 @@ new g_iMaxHistory = 40;
 
 new Float:g_fThreadsTimes[MAX_THREADS] = {-999.0,...};
 
-new g_sSystemDirectives[SYS_PROMT_MAX] = "Language: Russian. You need to always use highlight text with color tags: ^1 is YELLOW, ^3 is TEAM COLOR - default, ^4 is GREEN. Team colors ^5 is RED ^6 is GREY ^7 is BLUE and setup at message start. Your name is 'UnrealBot'. Answer more than 4077 characters – make it shorter. Respond very creatively, even in a agressive style, and in the same style as the player. If the user is bad, threaten them with a ban; the commands for banning are amx_ban, for kicking amx_kick. Player data: on the server, they are assigned number [userid], their nickname is [username], their IP address is [ip], and their SteamID is [steamid]. Hide a couple of digits in the IP and SteamID if you write them. Язык ответов - русский.";
+new g_sSystemDirectives[SYS_PROMT_MAX] = "You need to always use highlight text with color tags: ^1 is YELLOW, ^3 is TEAM COLOR - default, ^4 is GREEN. Team colors ^5 is RED ^6 is GREY ^7 is BLUE and setup at message start. Your name is 'UnrealBot', for Counter Strike 1.6. Answer more than 2000 characters – make it shorter.";
 
 new g_sTempBigBuffer[SYS_PROMT_MAX] = {EOS};
 
