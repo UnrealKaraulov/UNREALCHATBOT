@@ -11,7 +11,7 @@
 #pragma dynamic 262144
 
 new const PLUGIN_NAME[] = "UNREAL CHAT BOT";
-new const PLUGIN_VERSION[] = "1.03";
+new const PLUGIN_VERSION[] = "1.04";
 new const PLUGIN_AUTHOR[] = "Karaulov";
 new const PLUGIN_SITE[] = "https://dev-cs.ru";
 
@@ -390,10 +390,9 @@ public add_user_message(id, const message[]) {
 	ezhttp_post(g_sApiUrl, callback, options);
 
 
-	// для какой-то цели удаляет history_copy, по этому выше костыль для предотвращения удаления
 	new EzJSON: history_copy = g_playerHistory[id];
 	g_playerHistory[id] = ezjson_deep_copy(g_playerHistory[id]);
-	// 
+	// для какой-то цели удаляет history_copy, по этому выше костыль для предотвращения удаления
 	ezjson_free(history_copy);
 	ezjson_free(request_body);
 	update_threads(true);
@@ -712,7 +711,7 @@ update_threads(bool:need_add = false, bool:need_remove = false, bool:clear_all =
 
 stock SendSplitMessage(id, const prefix[], const message[]) {
 	new msg_len = strlen(message);
-	new prefix_len = strlen(prefix);
+	new prefix_len = strlen_bytes(prefix);
 	new max_part_len = 192 - prefix_len;
 	new sender = id;
 	new cur_pos = 0;
@@ -730,13 +729,7 @@ stock SendSplitMessage(id, const prefix[], const message[]) {
 
 		while (cur_pos < msg_len && part_len <= max_part_len) {
 			// size of on UTF8 char ? EN/RU/etc
-			new char_bytes = 1;
-			if (message[cur_pos] & 0x80) 
-			{
-				if ((message[cur_pos] & 0xE0) == 0xC0) char_bytes = 2;
-				else if ((message[cur_pos] & 0xF0) == 0xE0) char_bytes = 3;
-				else if ((message[cur_pos] & 0xF8) == 0xF0) char_bytes = 4;
-			}
+			new char_bytes = char_bytes_count(message[cur_pos]);
 			
 			if (part_len + char_bytes >= max_part_len) 
 			{
@@ -885,4 +878,35 @@ stock preparing_message(str[], len)
 	replace_all(str, len, "\t", " ");
 	replace_all(str, len, "\r", "");
 	replace_all(str, len, "\n", "");
+}
+
+stock strlen_bytes(const str[])
+{
+	new ret = 0;
+	new i = 0;
+	static b;
+	while((b = str[i]) != EOS)
+	{
+		if (b & 0x80) 
+		{
+			if ((b & 0xE0) == 0xC0) ret += 2;
+			else if ((b & 0xF0) == 0xE0) ret += 3;
+			else if ((b & 0xF8) == 0xF0) ret += 4;
+			else ret += 1;
+		}
+		else ret += 1;
+		i++;
+	}
+	return ret;
+}
+
+stock char_bytes_count(const b)
+{
+	if (b & 0x80) 
+	{
+		if ((b & 0xE0) == 0xC0) return 2;
+		else if ((b & 0xF0) == 0xE0) return 3;
+		else if ((b & 0xF8) == 0xF0) return 4;
+	}
+	return 1;
 }
